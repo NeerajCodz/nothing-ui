@@ -29,5 +29,7 @@ export default defineConfig({
     css: false,
     restoreMocks: true,
     clearMocks: true,
+    // The dot-icon explorer renders 1,600+ icons; the 5s default is too tight on CI runners.
+    testTimeout: 30_000,
   },
 });
