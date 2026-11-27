@@ -1,0 +1,203 @@
+@layer ui-sdk;
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: "Doto", ui-monospace, monospace;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Synchronized with @nothing-ui/tokens (Light / Dark OLED / High-Contrast) */
+:root,
+[data-theme="light"] {
+  --nt-bg: #f4f4f4;
+  --nt-surface: #ffffff;
+  --nt-surface-glass: rgba(255, 255, 255, 0.88);
+  --nt-raised: #ebebeb;
+  --nt-overlay: rgba(0, 0, 0, 0.52);
+  --nt-line: #e4e4e4;
+  --nt-line-2: #d0d0d0;
+  --nt-display: #000000;
+  --nt-primary: #141414;
+  --nt-secondary: #5a5a5a;
+  --nt-muted: #6e6e6e;
+  --nt-accent: #d71921;
+  --nt-accent-hover: #b8141b;
+  --nt-accent-soft: rgba(215, 25, 33, 0.1);
+  --nt-accent-fg: #ffffff;
+  --nt-success: #15803d;
+  --nt-warning: #b45309;
+  --nt-danger: #d71921;
+  --nt-focus-ring: #d71921;
+  --nt-inverse-bg: #0a0a0a;
+  --nt-inverse-fg: #ffffff;
+  --nt-radius-sm: 8px;
+  --nt-radius-md: 16px;
+  --nt-radius-lg: 20px;
+}
+
+.dark,
+[data-theme="dark"] {
+  --nt-bg: #000000;
+  --nt-surface: #111111;
+  --nt-surface-glass: rgba(18, 18, 18, 0.86);
+  --nt-raised: #1b1b1b;
+  --nt-overlay: rgba(0, 0, 0, 0.72);
+  --nt-line: #222222;
+  --nt-line-2: #333333;
+  --nt-display: #ffffff;
+  --nt-primary: #ededed;
+  --nt-secondary: #9c9c9c;
+  --nt-muted: #787878;
+  --nt-accent: #d71921;
+  --nt-accent-hover: #ef232b;
+  --nt-accent-soft: rgba(215, 25, 33, 0.18);
+  --nt-accent-fg: #ffffff;
+  --nt-success: #22c55e;
+  --nt-warning: #f59e0b;
+  --nt-danger: #ef232b;
+  --nt-focus-ring: #ef232b;
+  --nt-inverse-bg: #ffffff;
+  --nt-inverse-fg: #000000;
+}
+
+.high-contrast,
+[data-theme="high-contrast"] {
+  --nt-bg: #000000;
+  --nt-surface: #0a0a0a;
+  --nt-surface-glass: #0a0a0a;
+  --nt-raised: #1a1a1a;
+  --nt-overlay: rgba(0, 0, 0, 0.88);
+  --nt-line: #666666;
+  --nt-line-2: #ffffff;
+  --nt-display: #ffffff;
+  --nt-primary: #ffffff;
+  --nt-secondary: #e5e5e5;
+  --nt-muted: #bdbdbd;
+  --nt-accent: #ff2a32;
+  --nt-accent-hover: #ff5259;
+  --nt-accent-soft: rgba(255, 42, 50, 0.24);
+  --nt-accent-fg: #000000;
+  --nt-success: #4ade80;
+  --nt-warning: #facc15;
+  --nt-danger: #ff2a32;
+  --nt-focus-ring: #ffffff;
+  --nt-inverse-bg: #ffffff;
+  --nt-inverse-fg: #000000;
+}
+
+html {
+  font-family: var(--font-sans);
+  scroll-behavior: smooth;
+  background-color: var(--nt-bg);
+  color: var(--nt-primary);
+}
+
+/* Local-inverse sparse dot field layer: sits above background, below frosted cards */
+.nt-dot-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.42) 1.15px, transparent 1.45px);
+  background-size: 32px 32px;
+  mix-blend-mode: difference;
+  opacity: 0.45;
+}
+
+.nt-card-surface {
+  background-color: var(--nt-surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--nt-line);
+}
+
+@keyframes nt-dot-pulse {
+  0%, 100% {
+    opacity: 0.18;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.nt-dot-loader-cell {
+  animation: nt-dot-pulse 1.1s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes nt-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes nt-bar-pulse {
+  0%, 100% {
+    opacity: 0.28;
+    transform: scaleY(0.45);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes nt-indeterminate-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+
+.nt-bar-loader-col {
+  transform-origin: center;
+  animation: nt-bar-pulse 0.9s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.nt-indeterminate-bar {
+  animation: nt-indeterminate-sweep 1.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.nt-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--nt-raised) 25%,
+    var(--nt-line-2) 50%,
+    var(--nt-raised) 75%
+  );
+  background-size: 200% 100%;
+  animation: nt-shimmer 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nt-dot-loader-cell,
+  .nt-bar-loader-col,
+  .nt-indeterminate-bar,
+  .nt-skeleton {
+    animation: none;
+  }
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--nt-line-2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--nt-muted);
+}
