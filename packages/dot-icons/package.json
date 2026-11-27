@@ -1,6 +1,6 @@
 {
   "name": "@nothing-ui/dot-icons",
-  "version": "0.1.0-alpha.1",
+  "version": "1.0.0",
   "private": false,
   "type": "module",
   "exports": {
@@ -13,8 +13,12 @@
     "react-native-svg": ">=15.0.0"
   },
   "peerDependenciesMeta": {
-    "react": { "optional": true },
-    "react-native-svg": { "optional": true }
+    "react": {
+      "optional": true
+    },
+    "react-native-svg": {
+      "optional": true
+    }
   },
   "sideEffects": false
 }
