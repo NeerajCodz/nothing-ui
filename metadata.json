@@ -1,0 +1,6 @@
+{
+  "name": "Nothing UI",
+  "description": "A Nothing-inspired open-source React component library and shadcn-style registry built on ui-sdk headless primitives.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
