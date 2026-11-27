@@ -1,0 +1,20 @@
+{
+  "name": "@nothing-ui/dot-icons",
+  "version": "0.1.0-alpha.1",
+  "private": false,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react/index.ts",
+    "./native": "./src/native/index.ts"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native-svg": ">=15.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "react-native-svg": { "optional": true }
+  },
+  "sideEffects": false
+}
