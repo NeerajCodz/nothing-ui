@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Lint, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check version.json is in sync
+        run: npm run version:check
+
+      - name: Check CHANGELOG has a section for this version
+        run: npm run --silent changelog:extract > /dev/null
+
+      - name: Typecheck
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Component tests
+        run: npm run test:vitest
+
+      - name: Build nthgui and test the package
+        run: npm run test:package
+
+      - name: Build docs site
+        run: npm run build
+
+      - name: Pack nthgui
+        run: npm pack ./packages/nthgui --pack-destination .
+
+      - name: Smoke test npx and npm install from the tarball
+        run: npm run smoke -- ./nthgui-*.tgz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nthgui-tarball
+          path: nthgui-*.tgz
+          retention-days: 7
