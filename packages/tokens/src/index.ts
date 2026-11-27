@@ -67,7 +67,7 @@ export function getNativeTheme(mode: ThemeMode) {
 export function generateTokensJson(): string {
   return JSON.stringify(
     {
-      version: '0.1.0-alpha.1',
+      version: '1.0.0',
       themes: THEMES,
       spacing: SPACING_SCALE,
       radius: RADIUS_TOKENS,
