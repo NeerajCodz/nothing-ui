@@ -1,7 +1,7 @@
 {
-  "name": "react-example",
+  "name": "nothing-ui",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -12,7 +12,13 @@
     "test:watch": "vitest",
     "test:package": "npm run build:nthgui && tsx --test packages/nthgui/tests/nthgui-package.test.ts",
     "test": "npm run test:unit && npm run test:vitest && npm run test:package",
-    "verify": "npm run lint && npm test && npm run build",
+    "verify": "npm run version:check && npm run lint && npm test && npm run build",
+    "version:sync": "tsx scripts/sync-version.ts",
+    "version:check": "tsx scripts/sync-version.ts --check",
+    "version:release": "tsx scripts/sync-version.ts --release",
+    "changelog:extract": "tsx scripts/extract-changelog.ts",
+    "release:pack": "npm run build:nthgui && npm pack ./packages/nthgui --pack-destination .",
+    "smoke": "tsx scripts/smoke-nthgui.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
