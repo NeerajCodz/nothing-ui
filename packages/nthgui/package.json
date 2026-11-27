@@ -1,0 +1,84 @@
+{
+  "name": "nthgui",
+  "version": "0.1.0",
+  "description": "Nothing UI — Monochrome industrial design system for Web & React Native. Copy-in CLI (npx nthgui add) and all-in-one package (npm install nthgui).",
+  "private": false,
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "nothing-ui",
+    "nthgui",
+    "react",
+    "react-native",
+    "expo",
+    "tailwindcss",
+    "design-system",
+    "ui-components",
+    "dot-matrix",
+    "glyph",
+    "cli"
+  ],
+  "bin": {
+    "nthgui": "./dist/cli.mjs"
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs"
+    },
+    "./native": {
+      "types": "./dist/native.d.ts",
+      "import": "./dist/native.mjs"
+    },
+    "./glyph": {
+      "types": "./dist/glyph.d.ts",
+      "import": "./dist/glyph.mjs"
+    },
+    "./icons": {
+      "types": "./dist/icons.d.ts",
+      "import": "./dist/icons.mjs"
+    },
+    "./tokens": {
+      "types": "./dist/tokens.d.ts",
+      "import": "./dist/tokens.mjs"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@ui-sdk/core": "^0.1.0-beta.13",
+    "@ui-sdk/react": "^0.1.0-beta.13",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.546.0",
+    "tailwind-merge": "^3.7.0"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "react-native": ">=0.74.0",
+    "react-native-svg": ">=15.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    },
+    "react-native": {
+      "optional": true
+    },
+    "react-native-svg": {
+      "optional": true
+    }
+  }
+}
