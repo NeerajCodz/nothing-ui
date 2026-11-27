@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nothing UI — Dot-Matrix Component Library for React</title>
+    <meta
+      name="description"
+      content="A Nothing-inspired open-source React component library and shadcn-style registry built on ui-sdk headless primitives."
+    />
+    <meta property="og:title" content="Nothing UI — Dot-Matrix Component Library for React" />
+    <meta
+      property="og:description"
+      content="A Nothing-inspired open-source React component library and shadcn-style registry built on ui-sdk headless primitives."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Doto:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('nthgui-theme');
+          if (t === 'light' || t === 'dark' || t === 'high-contrast') {
+            var r = document.documentElement;
+            r.classList.remove('light', 'dark', 'high-contrast');
+            r.setAttribute('data-theme', t);
+            if (t === 'light') r.classList.add('light');
+            else if (t === 'dark') r.classList.add('dark');
+            else r.classList.add('dark', 'high-contrast');
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="bg-[var(--nt-bg)] text-[var(--nt-primary)] antialiased selection:bg-[#D71921] selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
