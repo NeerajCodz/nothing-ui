@@ -1,0 +1,17 @@
+{
+  "name": "@nothing-ui/ui",
+  "version": "0.1.0-alpha.1",
+  "private": false,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./hooks/*": "./src/hooks/*.tsx",
+    "./lib/*": "./src/lib/*.ts"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "sideEffects": ["**/*.css"]
+}
