@@ -1,0 +1,498 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import esbuild from 'esbuild';
+import { CATALOG } from '../packages/registry/src/catalog';
+import { getAllNativeSpecs } from '../packages/ui-native/src/components/native-catalog';
+import { SHOWCASE_CATALOG } from '../apps/ui/src/lib/showcase';
+import { generateWebCss } from '../packages/tokens/src/index';
+import { rewriteTemplateImports, type OfflineTemplateRecord } from '../packages/cli/src/index';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT = path.resolve(__dirname, '..');
+const PKG_DIR = path.join(ROOT, 'packages', 'nthgui');
+const SRC_DIR = path.join(PKG_DIR, 'src');
+const DIST_DIR = path.join(PKG_DIR, 'dist');
+
+const pkgJson = JSON.parse(
+  fs.readFileSync(path.join(PKG_DIR, 'package.json'), 'utf8'),
+) as { version: string; dependencies?: Record<string, string>; peerDependencies?: Record<string, string> };
+
+function buildStylesCss(): string {
+  const baseTokens = generateWebCss().replace('@nothing-ui/tokens', 'nthgui/tokens');
+  const rootCss = fs.readFileSync(path.join(ROOT, 'src', 'index.css'), 'utf8');
+  const marker = '/* Local-inverse sparse dot field layer';
+  const markerIdx = rootCss.indexOf(marker);
+  const extras = markerIdx >= 0 ? rootCss.slice(markerIdx) : '';
+  return `${baseTokens}\n\n${extras.trim()}\n`;
+}
+
+function buildNativeThemeTemplate(): string {
+  return `// Nothing UI (nthgui) — React Native Theme Helper
+import { createNativeTheme, type ThemeMode } from "nthgui/native";
+
+export const nothingTheme = createNativeTheme("dark");
+
+export function getNothingTheme(mode: ThemeMode = "dark") {
+  return createNativeTheme(mode);
+}
+`;
+}
+
+function buildUtilsTemplate(): string {
+  return `import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+`;
+}
+
+function readWebTemplateForCatalog(slug: string, sourcePath: string, title: string): string {
+  const absSource = path.join(ROOT, sourcePath);
+  // Standalone dedicated files under packages/ui/src/components or dot-icons can be copied directly
+  const standaloneFiles = new Set([
+    'packages/ui/src/components/button.tsx',
+    'packages/ui/src/components/glyph-matrix.tsx',
+    'packages/ui/src/components/dotted-ui.tsx',
+    'packages/ui/src/components/hardware-ui.tsx',
+    'packages/ui/src/components/loader.tsx',
+    'packages/dot-icons/src/react/dot-icon.tsx',
+  ]);
+  if (standaloneFiles.has(sourcePath) && fs.existsSync(absSource)) {
+    return rewriteTemplateImports(fs.readFileSync(absSource, 'utf8'));
+  }
+
+  // For multi-component bundles or v0.2 expanded widgets, emit a clean, editable nthgui wrapper template
+  const pascal = slug
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+
+  return `/**
+ * Nothing UI — ${title} (copy-in template via \`npx nthgui add ${slug}\`)
+ * Customize styling or compose directly on top of the single \`nthgui\` package.
+ */
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import * as NthgUI from "nthgui";
+
+export interface ${pascal}WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
+  children?: React.ReactNode;
+}
+
+export function ${pascal}Container({ className, children, ...props }: ${pascal}WrapperProps) {
+  return (
+    <div
+      data-nthgui-component="${slug}"
+      className={cn(
+        "rounded-2xl border border-[var(--nt-line)] bg-[var(--nt-surface)] p-4 text-[var(--nt-primary)]",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+export { NthgUI };
+`;
+}
+
+function generateOfflineTemplatesModule(): OfflineTemplateRecord[] {
+  const nativeBySlug = new Map(getAllNativeSpecs().map((item) => [item.slug, item]));
+  const records: OfflineTemplateRecord[] = [];
+
+  for (const entry of CATALOG) {
+    const nativeSpec = nativeBySlug.get(entry.slug);
+    records.push({
+      slug: entry.slug,
+      title: entry.title,
+      category: entry.category,
+      description: entry.description,
+      webFile: readWebTemplateForCatalog(entry.slug, entry.sourcePath, entry.title),
+      nativeFile: nativeSpec ? rewriteTemplateImports(nativeSpec.code) : undefined,
+      peerHints: entry.uiSdkPrimitive ? ['react >= 18', 'nthgui'] : ['react >= 18'],
+    });
+  }
+
+  // Include all 10 Showcase compositions as copy-in templates
+  for (const showcase of SHOWCASE_CATALOG) {
+    if (records.some((r) => r.slug === showcase.cliTarget)) continue;
+    records.push({
+      slug: showcase.cliTarget,
+      title: showcase.title,
+      category: `Showcase · ${showcase.category}`,
+      description: showcase.description,
+      webFile: rewriteTemplateImports(showcase.code),
+      peerHints: ['react >= 18', 'nthgui'],
+    });
+  }
+
+  const generatedSource = `// AUTO-GENERATED by scripts/build-nthgui.ts — do not edit manually.
+import type { OfflineTemplateRecord } from '../../cli/src/index';
+
+export const CLI_VERSION = ${JSON.stringify(pkgJson.version)};
+
+export const CLI_TOKENS_CSS = ${JSON.stringify(buildStylesCss())};
+
+export const CLI_NATIVE_THEME_FILE = ${JSON.stringify(buildNativeThemeTemplate())};
+
+export const CLI_UTILS_FILE = ${JSON.stringify(buildUtilsTemplate())};
+
+export const OFFLINE_TEMPLATES: readonly OfflineTemplateRecord[] = ${JSON.stringify(records, null, 2)};
+`;
+
+  fs.writeFileSync(path.join(SRC_DIR, 'generated-templates.ts'), generatedSource, 'utf8');
+  return records;
+}
+
+function writeTypeDeclarations(): void {
+  const declarations: Record<string, string> = {
+    'index.d.ts': `import * as React from 'react';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'signal' | 'link';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
+export type LoaderVariant = 'normal' | 'dots' | 'bars' | 'pulse';
+export type LoadingPosition = 'start' | 'end' | 'replace';
+export type SkeletonAnimation = 'shimmer' | 'pulse' | 'none';
+export type ThemeMode = 'light' | 'dark' | 'high-contrast';
+export type DensityMode = 'compact' | 'comfortable' | 'spacious';
+
+export interface NothingLoadingProps {
+  loading?: boolean;
+  loadingText?: string;
+  loaderVariant?: LoaderVariant;
+  loadingPosition?: LoadingPosition;
+}
+
+export interface NothingButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    NothingLoadingProps {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  shape?: 'rounded' | 'pill' | 'square';
+}
+
+export declare const Button: React.ForwardRefExoticComponent<
+  NothingButtonProps & React.RefAttributes<HTMLButtonElement>
+>;
+export declare const NothingButton: typeof Button;
+export declare function Loader(props: {
+  variant?: LoaderVariant;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  label?: string;
+  className?: string;
+}): React.ReactElement;
+export declare const NothingLoader: typeof Loader;
+export declare function cn(...inputs: Array<string | number | boolean | null | undefined | Record<string, unknown>>): string;
+export declare function ThemeProvider(props: {
+  defaultTheme?: ThemeMode;
+  defaultDensity?: DensityMode;
+  storageKey?: string;
+  children: React.ReactNode;
+}): React.ReactElement;
+export declare function useTheme(): {
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
+  density: DensityMode;
+  setDensity: (density: DensityMode) => void;
+};
+export declare function LoadingConfigProvider(props: {
+  variant?: LoaderVariant;
+  position?: LoadingPosition;
+  skeletonAnimation?: SkeletonAnimation;
+  children: React.ReactNode;
+}): React.ReactElement;
+export declare function useAsyncAction<T extends (...args: never[]) => Promise<unknown> | unknown>(
+  action: T,
+  options?: { minDurationMs?: number },
+): { run: (...args: Parameters<T>) => Promise<void>; loading: boolean; error: unknown };
+export type ChartCurveMode = 'linear' | 'smooth' | 'step';
+export type ChartGridMode = 'horizontal' | 'both' | 'vertical' | 'none';
+export type ChartPaletteId = 'monochrome' | 'signal' | 'spectral' | 'ocean' | 'amber' | 'high-contrast' | 'custom';
+export interface BaseInteractiveChartProps {
+  palette?: ChartPaletteId;
+  curve?: ChartCurveMode;
+  strokeWidth?: number;
+  fillOpacity?: number;
+  dotSize?: number;
+  showGrid?: boolean;
+  showLabels?: boolean;
+  showArea?: boolean;
+  showThreshold?: boolean;
+  thresholdValue?: number;
+  defaultLive?: boolean;
+  defaultConfigOpen?: boolean;
+  className?: string;
+}
+export declare function InteractiveCoreCharts(props: BaseInteractiveChartProps & { mode?: 'bar' | 'line' | 'radial'; stacked?: boolean }): React.ReactElement;
+export declare function InteractiveSparklineStrip(props: BaseInteractiveChartProps): React.ReactElement;
+export declare function InteractiveRadarChart(props: BaseInteractiveChartProps & { rings?: number }): React.ReactElement;
+export declare function InteractivePieChart(props: BaseInteractiveChartProps & { innerRadiusRatio?: number; padAngle?: number; halfDonut?: boolean }): React.ReactElement;
+export declare function InteractiveTimeseriesChart(props: BaseInteractiveChartProps): React.ReactElement;
+export declare function InteractiveSankeyChart(props: BaseInteractiveChartProps): React.ReactElement;
+export declare function InteractiveMapChart(props: BaseInteractiveChartProps): React.ReactElement;
+export declare function InteractiveFlowChart(props: BaseInteractiveChartProps): React.ReactElement;
+export declare function InteractiveCustomChart(props: BaseInteractiveChartProps): React.ReactElement;
+export * from './glyph';
+export * from './icons';
+export * from './tokens';
+`,
+    'native.d.ts': `import * as React from 'react';
+import type { ThemeMode } from './tokens';
+import type { GlyphCellState, GlyphPresetId, GlyphResolution } from './glyph';
+import type { DotIconName } from './icons';
+
+export type NativeLoaderVariant = 'normal' | 'dots' | 'bars' | 'pulse';
+export declare const DEFAULT_NATIVE_LOADER_VARIANT: NativeLoaderVariant;
+export declare function createNativeTheme(mode?: ThemeMode): {
+  mode: ThemeMode;
+  colors: Record<string, string>;
+  spacing: Record<string, number>;
+  radius: Record<string, number>;
+  typography: Record<string, string>;
+};
+export interface NativeGlyphPoint {
+  index: number;
+  cx: number;
+  cy: number;
+  r: number;
+  fill: string;
+  state: Exclude<GlyphCellState, 'void'>;
+}
+export declare function buildNativeGlyphPoints(options: {
+  resolution?: GlyphResolution;
+  preset?: GlyphPresetId;
+  cells?: readonly GlyphCellState[];
+  mode?: ThemeMode;
+}): { viewBoxSize: number; points: NativeGlyphPoint[] };
+export interface NativeDotIconProps {
+  name: DotIconName;
+  size?: number;
+  color?: string;
+  dotRadius?: number;
+  accessibilityLabel?: string;
+}
+export declare function DotIcon(props: NativeDotIconProps): React.ReactElement;
+export interface NativeComponentSpec {
+  slug: string;
+  nativeName: string;
+  webCounterpart: string;
+  title: string;
+  category: string;
+  importPath: string;
+  cliCommand: string;
+  code: string;
+  platformNotes: string;
+}
+export declare const NATIVE_CATALOG_SPECS: Readonly<Record<string, NativeComponentSpec>>;
+export declare function getAllNativeSpecs(): NativeComponentSpec[];
+export declare function getNativeSpecBySlug(slug: string): NativeComponentSpec | undefined;
+export declare function hasNativeSpec(slug: string): boolean;
+`,
+    'glyph.d.ts': `import * as React from 'react';
+export type GlyphResolution = 13 | 25;
+export type GlyphCellState = 'void' | 'off' | 'on' | 'signal';
+export type GlyphPresetId = 'power' | 'play' | 'heart' | 'live' | 'arrow' | 'sound' | 'smiley' | 'plus';
+export declare const GLYPH_PRESET_IDS: readonly GlyphPresetId[];
+export declare function getPreset(id: GlyphPresetId, resolution?: GlyphResolution): GlyphCellState[];
+export declare function createMask(resolution: GlyphResolution): boolean[];
+export declare function countAddressable(resolution: GlyphResolution): number;
+export declare function createEmptyGrid(resolution: GlyphResolution): GlyphCellState[];
+export declare function isInsideCircle(x: number, y: number, resolution: GlyphResolution): boolean;
+export interface GlyphMatrixProps {
+  resolution?: GlyphResolution;
+  preset?: GlyphPresetId;
+  cells?: readonly GlyphCellState[];
+  defaultCells?: readonly GlyphCellState[];
+  onCellsChange?: (cells: GlyphCellState[]) => void;
+  interactive?: boolean;
+  paintState?: 'off' | 'on' | 'signal';
+  size?: number;
+  className?: string;
+  label?: string;
+}
+export declare function GlyphMatrix(props: GlyphMatrixProps): React.ReactElement;
+export declare function GlyphMatrix25(props: Omit<GlyphMatrixProps, 'resolution'>): React.ReactElement;
+export declare function GlyphMatrix13(props: Omit<GlyphMatrixProps, 'resolution'>): React.ReactElement;
+export declare function GlyphProgress(props: { value: number; resolution?: GlyphResolution; size?: number; className?: string }): React.ReactElement;
+export declare function GlyphAnimator(props: { frames: readonly (readonly GlyphCellState[])[]; fps?: number; resolution?: GlyphResolution; size?: number }): React.ReactElement;
+`,
+    'icons.d.ts': `import * as React from 'react';
+export type DotIconCanonicalName = string;
+export type DotIconAliasName = 'map-pin';
+export type DotIconName = DotIconCanonicalName | DotIconAliasName;
+export declare const DOT_ICON_NAMES: readonly DotIconCanonicalName[];
+export declare const DOT_ICON_ALIASES: Record<string, DotIconCanonicalName>;
+export interface DotIconPoint {
+  x: number;
+  y: number;
+}
+export declare function resolveDotIconName(name: DotIconName): DotIconCanonicalName;
+export declare function getDotIconPoints(name: DotIconName): DotIconPoint[];
+export interface DotIconProps extends React.SVGProps<SVGSVGElement> {
+  name: DotIconName;
+  size?: number;
+  dotRadius?: number;
+  color?: string;
+  decorative?: boolean;
+}
+export declare function DotIcon(props: DotIconProps): React.ReactElement;
+`,
+    'tokens.d.ts': `export type ThemeMode = 'light' | 'dark' | 'high-contrast';
+export type DensityMode = 'compact' | 'comfortable' | 'spacious';
+export interface SemanticColorTokens {
+  background: string;
+  surface: string;
+  surfaceGlass: string;
+  surfaceRaised: string;
+  surfaceOverlay: string;
+  border: string;
+  borderStrong: string;
+  foreground: string;
+  foregroundPrimary: string;
+  foregroundSecondary: string;
+  foregroundMuted: string;
+  signal: string;
+  signalHover: string;
+  signalSoft: string;
+  signalForeground: string;
+  success: string;
+  warning: string;
+  danger: string;
+  focusRing: string;
+  interactive: string;
+  interactiveForeground: string;
+}
+export declare const LIGHT_THEME: SemanticColorTokens;
+export declare const DARK_THEME: SemanticColorTokens;
+export declare const HIGH_CONTRAST_THEME: SemanticColorTokens;
+export declare const THEMES: Record<ThemeMode, SemanticColorTokens>;
+export declare function generateWebCss(): string;
+export declare function getNativeTheme(mode: ThemeMode): Record<string, unknown>;
+export declare function generateTokensJson(): string;
+`,
+  };
+
+  for (const [fileName, content] of Object.entries(declarations)) {
+    fs.writeFileSync(path.join(DIST_DIR, fileName), content, 'utf8');
+  }
+}
+
+async function build(): Promise<void> {
+  fs.rmSync(DIST_DIR, { recursive: true, force: true });
+  fs.mkdirSync(DIST_DIR, { recursive: true });
+
+  const templates = generateOfflineTemplatesModule();
+
+  // Write styles.css
+  fs.writeFileSync(path.join(DIST_DIR, 'styles.css'), buildStylesCss(), 'utf8');
+
+  const workspaceAliasPlugin: esbuild.Plugin = {
+    name: 'nthgui-workspace-aliases',
+    setup(buildApi) {
+      const exactMap: Record<string, string> = {
+        '@nothing-ui/tokens': path.join(ROOT, 'packages/tokens/src/index.ts'),
+        '@nothing-ui/core': path.join(ROOT, 'packages/core/src/index.ts'),
+        '@nothing-ui/dot-icons/react': path.join(ROOT, 'packages/dot-icons/src/react/index.ts'),
+        '@nothing-ui/dot-icons/native': path.join(ROOT, 'packages/dot-icons/src/native/index.ts'),
+        '@nothing-ui/dot-icons': path.join(ROOT, 'packages/dot-icons/src/index.ts'),
+        '@nothing-ui/ui': path.join(ROOT, 'packages/ui/src/index.ts'),
+        '@nothing-ui/ui-native': path.join(ROOT, 'packages/ui-native/src/index.ts'),
+        '@nothing-ui/registry': path.join(ROOT, 'packages/registry/src/index.ts'),
+        '@nothing-ui/cli': path.join(ROOT, 'packages/cli/src/index.ts'),
+      };
+
+      buildApi.onResolve({ filter: /^(@nothing-ui\/|@\/)/ }, (args) => {
+        if (exactMap[args.path]) {
+          return { path: exactMap[args.path] };
+        }
+        if (args.path.startsWith('@nothing-ui/ui/')) {
+          const rest = args.path.slice('@nothing-ui/ui/'.length);
+          for (const ext of ['.tsx', '.ts', '/index.ts']) {
+            const candidate = path.join(ROOT, 'packages/ui/src', `${rest}${ext}`);
+            if (fs.existsSync(candidate)) return { path: candidate };
+          }
+        }
+        if (args.path.startsWith('@/')) {
+          const rest = args.path.slice(2);
+          for (const ext of ['.tsx', '.ts', '/index.ts']) {
+            const candidate = path.join(ROOT, 'src', `${rest}${ext}`);
+            if (fs.existsSync(candidate)) return { path: candidate };
+          }
+        }
+        return null;
+      });
+    },
+  };
+
+  const sharedExternal = [
+    'react',
+    'react-dom',
+    'react/jsx-runtime',
+    'react/jsx-dev-runtime',
+    'react-native',
+    'react-native-svg',
+    'clsx',
+    'tailwind-merge',
+    'lucide-react',
+    '@ui-sdk/react',
+    '@ui-sdk/react/*',
+    '@ui-sdk/core',
+    '@ui-sdk/core/*',
+  ];
+
+  // Bundle library ESM subpaths
+  const entries: Array<{ in: string; out: string }> = [
+    { in: path.join(SRC_DIR, 'index.ts'), out: 'index' },
+    { in: path.join(SRC_DIR, 'native.ts'), out: 'native' },
+    { in: path.join(SRC_DIR, 'glyph.ts'), out: 'glyph' },
+    { in: path.join(SRC_DIR, 'icons.ts'), out: 'icons' },
+    { in: path.join(SRC_DIR, 'tokens.ts'), out: 'tokens' },
+  ];
+
+  await Promise.all(
+    entries.map((entry) =>
+      esbuild.build({
+        entryPoints: [entry.in],
+        outfile: path.join(DIST_DIR, `${entry.out}.mjs`),
+        bundle: true,
+        format: 'esm',
+        platform: 'neutral',
+        target: 'es2022',
+        jsx: 'automatic',
+        sourcemap: false,
+        external: sharedExternal,
+        plugins: [workspaceAliasPlugin],
+      }),
+    ),
+  );
+
+  // Bundle standalone executable Node CLI (zero runtime npm dependencies)
+  const cliOut = path.join(DIST_DIR, 'cli.mjs');
+  await esbuild.build({
+    entryPoints: [path.join(SRC_DIR, 'cli.ts')],
+    outfile: cliOut,
+    bundle: true,
+    format: 'esm',
+    platform: 'node',
+    target: 'node18',
+    banner: { js: '#!/usr/bin/env node' },
+    plugins: [workspaceAliasPlugin],
+  });
+  fs.chmodSync(cliOut, 0o755);
+
+  writeTypeDeclarations();
+
+  console.log(
+    `Built nthgui v${pkgJson.version} -> packages/nthgui/dist/ (${entries.length} ESM subpaths, styles.css, cli.mjs with ${templates.length} offline templates).`,
+  );
+}
+
+build().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
