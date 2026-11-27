@@ -59,7 +59,7 @@ jobs:
       - name: Smoke test npx and npm install from the tarball
         run: npm run smoke -- ./nthgui-*.tgz
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: nthgui-tarball
           path: nthgui-*.tgz
