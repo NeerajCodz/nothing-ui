@@ -9,6 +9,10 @@ import {
 } from '../apps/ui/src/demos/expanded/v04-forms-overlays-layout';
 import { NothingInput } from '../src/components/nothing/Input';
 
+// ui-sdk's screen-reader announcer keeps the last message in a hidden live region after the
+// visible error clears, so "error is gone" checks must look past it.
+const IGNORE_LIVE_REGION = 'script, style, [data-ui-sdk-announcer]';
+
 describe('Form keyboard shortcuts, NP3-XXX-X Device Serial validation & custom regex support', () => {
   it('enforces NP3-XXX-X Device Serial format, renders aria-invalid indicators, and triggers Provision Device via Cmd/Ctrl+Enter in complete FormDemo', async () => {
     const user = userEvent.setup();
@@ -255,7 +259,7 @@ describe('Form keyboard shortcuts, NP3-XXX-X Device Serial validation & custom r
     await user.clear(customInput);
     await user.type(customInput, 'glyph-481');
     expect(customInput).not.toHaveAttribute('aria-invalid', 'true');
-    expect(screen.queryByText('Custom Tag must match GLYPH-NNN.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Custom Tag must match GLYPH-NNN.', { ignore: IGNORE_LIVE_REGION })).not.toBeInTheDocument();
   });
 
   it('provides plug-and-play regex validation via the useValidation custom hook for any input', async () => {
@@ -328,7 +332,7 @@ describe('Form keyboard shortcuts, NP3-XXX-X Device Serial validation & custom r
     await user.clear(serialInput);
     await user.type(serialInput, 'NP3-481-A');
     expect(serialInput).toHaveAttribute('aria-invalid', 'false');
-    expect(screen.queryByText('Serial must follow NP3-XXX-X format.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Serial must follow NP3-XXX-X format.', { ignore: IGNORE_LIVE_REGION })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Reset Serial' }));
     expect(serialInput.value).toBe('');
