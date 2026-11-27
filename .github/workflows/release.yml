@@ -97,7 +97,7 @@ jobs:
       - name: Extract release notes from CHANGELOG
         run: npm run --silent changelog:extract -- "${{ steps.version.outputs.version }}" > release-notes.md
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: nthgui-tarball
 
@@ -127,13 +127,47 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ steps.version.outputs.tag }}"
+          SPEC="${{ steps.version.outputs.name }}@${{ steps.version.outputs.version }}"
           if gh release view "$TAG" > /dev/null 2>&1; then
             echo "Release $TAG already exists; nothing to do."
             exit 0
           fi
+
+          # Attach the tarball exactly as npm serves it (it may have been published from
+          # elsewhere), and check it against npm's recorded integrity.
+          mkdir -p release-assets
+          (cd release-assets && npm pack "$SPEC" --silent > /dev/null)
+          ASSET="release-assets/$(ls release-assets)"
+          EXPECTED="$(npm view "$SPEC" dist.integrity)"
+          ACTUAL="sha512-$(openssl dgst -sha512 -binary "$ASSET" | base64 -w0)"
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "::error::Downloaded tarball does not match npm integrity ($EXPECTED vs $ACTUAL)"
+            exit 1
+          fi
+          (cd release-assets && sha256sum *.tgz > SHA256SUMS.txt)
+
+          {
+            echo
+            echo "### Install"
+            echo
+            echo '```bash'
+            echo "npx nthgui@${{ steps.version.outputs.version }} init"
+            echo "npm install nthgui@${{ steps.version.outputs.version }}"
+            echo '```'
+            echo
+            echo "### Assets"
+            echo
+            echo "- \`$(basename "$ASSET")\`: the exact tarball published to npm"
+            echo "- \`SHA256SUMS.txt\`: SHA-256 checksum of the tarball"
+            echo
+            echo "npm integrity: \`$EXPECTED\`"
+            echo
+            echo "npm: https://www.npmjs.com/package/${{ steps.version.outputs.name }}/v/${{ steps.version.outputs.version }}"
+          } >> release-notes.md
+
           FLAGS=()
           if [ "${{ steps.version.outputs.prerelease }}" = "true" ]; then FLAGS+=(--prerelease); fi
-          gh release create "$TAG" nthgui-*.tgz \
+          gh release create "$TAG" "$ASSET" release-assets/SHA256SUMS.txt \
             --target "$GITHUB_SHA" \
             --title "nthgui $TAG" \
             --notes-file release-notes.md \
