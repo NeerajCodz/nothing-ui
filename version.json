@@ -1,0 +1,13 @@
+{
+  "$comment": "Versions of the released parts of Nothing UI, tracked separately. Edit here, then run `npm run version:sync`. They ship together as the single `nthgui` npm package, which takes its version from `ui`.",
+  "release": {
+    "package": "nthgui",
+    "path": "packages/nthgui",
+    "versionFrom": "ui"
+  },
+  "packages": {
+    "ui": { "name": "@nothing-ui/ui", "path": "packages/ui", "version": "1.0.0" },
+    "dot-icons": { "name": "@nothing-ui/dot-icons", "path": "packages/dot-icons", "version": "1.0.0" },
+    "cli": { "name": "@nothing-ui/cli", "path": "packages/cli", "version": "1.0.0" }
+  }
+}
