@@ -1,10 +1,24 @@
 {
   "name": "nthgui",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Nothing UI — Monochrome industrial design system for Web & React Native. Copy-in CLI (npx nthgui add) and all-in-one package (npm install nthgui).",
   "private": false,
   "type": "module",
   "license": "MIT",
+  "author": "NeerajCodz",
+  "homepage": "https://github.com/NeerajCodz/nothing-ui#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NeerajCodz/nothing-ui.git",
+    "directory": "packages/nthgui"
+  },
+  "bugs": {
+    "url": "https://github.com/NeerajCodz/nothing-ui/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "keywords": [
     "nothing-ui",
     "nthgui",
