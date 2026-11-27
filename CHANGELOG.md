@@ -40,8 +40,8 @@ First stable release of the `nthgui` package on npm.
 - **Docs app**: component explorer, props playground, glyph studio, icon explorer,
   charts and widgets hubs, theme customizer and CLI setup guide.
 - **Release tooling**: root `version.json` (separate ui, dot-icons and cli versions) and `CHANGELOG.md`, version sync and check
-  scripts, CI on every push and pull request, and automated npm publishing with
-  provenance, `npx` smoke tests, git tags and GitHub releases.
+  scripts, CI on every push and pull request, and automated npm publishing via trusted
+  publishing (OIDC, no stored tokens) with provenance, `npx` smoke tests, git tags and GitHub releases.
 
 [Unreleased]: https://github.com/NeerajCodz/nothing-ui/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/NeerajCodz/nothing-ui/releases/tag/v1.0.0
