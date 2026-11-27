@@ -164,8 +164,9 @@ npm run dev            # docs site at http://localhost:3000
   `dot-icons` and `cli`) separately. `nthgui` takes its npm version from `ui`.
 - [`CHANGELOG.md`](./CHANGELOG.md) follows Keep a Changelog. Every release needs a section.
 - Pushing a `version.json` change to `main` runs the release workflow. It tests and packs
-  `nthgui`, publishes that exact tarball to npm with provenance, checks the live package with
-  `npx`, then creates the `vX.Y.Z` tag and GitHub release.
+  `nthgui`, publishes that exact tarball to npm via trusted publishing (OIDC, no stored tokens,
+  automatic provenance), checks the live package with `npx`, then creates the `vX.Y.Z` tag and
+  GitHub release.
 
 Full steps are in [`docs/releasing.md`](./docs/releasing.md).
 
