@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "types": ["vite/client"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@nothing-ui/tokens": ["./packages/tokens/src/index.ts"],
+      "@nothing-ui/tokens/*": ["./packages/tokens/src/*"],
+      "@nothing-ui/core": ["./packages/core/src/index.ts"],
+      "@nothing-ui/core/*": ["./packages/core/src/*"],
+      "@nothing-ui/dot-icons": ["./packages/dot-icons/src/index.ts"],
+      "@nothing-ui/dot-icons/react": ["./packages/dot-icons/src/react/index.ts"],
+      "@nothing-ui/dot-icons/native": ["./packages/dot-icons/src/native/index.ts"],
+      "@nothing-ui/ui": ["./packages/ui/src/index.ts"],
+      "@nothing-ui/ui/*": ["./packages/ui/src/*"],
+      "@nothing-ui/ui-native": ["./packages/ui-native/src/index.ts"],
+      "@nothing-ui/registry": ["./packages/registry/src/index.ts"],
+      "@nothing-ui/cli": ["./packages/cli/src/index.ts"],
+      "@apps/ui/*": ["./apps/ui/src/*"]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "exclude": ["dist", "packages/ui-native/tests", "packages/nthgui/dist"]
+}
