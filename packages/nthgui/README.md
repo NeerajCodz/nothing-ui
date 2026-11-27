@@ -1,6 +1,6 @@
 # Nothing UI (`nthgui`)
 
-Monochrome industrial design system for **Web** and **React Native** — built around crisp 1px hairlines, dot-matrix typography, Signal Red accents, circular 13×13 & 25×25 Glyph Matrices, and 35 original 9×9 Dot Icons.
+Monochrome industrial design system for **Web** and **React Native** — built around crisp 1px hairlines, dot-matrix typography, Signal Red accents, circular 13×13 & 25×25 Glyph Matrices, and 1,600+ dot-pixel icons.
 
 Nothing UI publishes as a single npm package (**`nthgui`**) supporting both **shadcn-style copy-in scaffolding** and **direct single-package imports** with zero extra installs.
 
@@ -19,7 +19,7 @@ npx nthgui add button glyph-matrix dot-icon
 npx nthgui init --native
 npx nthgui add button glyph-matrix --native
 
-# Inspect available templates or check project health
+# Browse all 121 templates or check project health
 npx nthgui list
 npx nthgui doctor
 ```
@@ -54,9 +54,9 @@ import { createNativeTheme, buildNativeGlyphPoints, DotIcon } from "nthgui/nativ
 | Import Path | Contents |
 | --- | --- |
 | `nthgui` | Web UI components, loading config provider, theme provider, hooks, and `cn` utility |
-| `nthgui/native` | React Native theme tokens, SVG Glyph Matrix & DotIcon helpers, and 60 native component specs |
+| `nthgui/native` | React Native theme tokens, SVG Glyph Matrix & DotIcon helpers, and 111 native component specs |
 | `nthgui/glyph` | 13×13 & 25×25 circular Glyph Matrix math, 8 presets, `GlyphMatrix`, `GlyphProgress`, `GlyphAnimator` |
-| `nthgui/icons` | 35 original 9×9 monochrome dot-pixel SVG icons with `map-pin` alias support |
+| `nthgui/icons` | 1,691 monochrome dot-pixel SVG icons (original sets plus a Lucide-derived pack) with 216 aliases |
 | `nthgui/tokens` | Light, Dark OLED, and WCAG AAA High-Contrast themes, scales, and CSS/JSON generators |
 | `nthgui/styles.css` | Pre-built CSS custom properties, frosted dot-field surface, and loader keyframes |
 
