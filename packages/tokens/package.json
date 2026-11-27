@@ -1,6 +1,6 @@
 {
   "name": "@nothing-ui/tokens",
-  "version": "0.1.0-alpha.1",
+  "version": "1.0.0",
   "private": false,
   "type": "module",
   "exports": {
@@ -9,5 +9,7 @@
     "./web.css": "./generated/web.css",
     "./native": "./generated/native.ts"
   },
-  "sideEffects": ["**/*.css"]
+  "sideEffects": [
+    "**/*.css"
+  ]
 }

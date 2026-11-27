@@ -1,6 +1,6 @@
 {
   "name": "@nothing-ui/docs-app",
-  "version": "0.1.0-alpha.1",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Single unified Nothing UI documentation, showcase, playground, Dot Icon explorer, and Glyph Studio application."
