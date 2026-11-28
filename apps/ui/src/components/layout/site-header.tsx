@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CircleHalf, List, MagnifyingGlass, Moon, Sun } from '@phosphor-icons/react';
+import { CircleHalf, GithubLogo, List, MagnifyingGlass, Moon, Sun } from '@phosphor-icons/react';
 import type { ThemeMode } from '@nothing-ui/tokens';
 import {
   THEME_STORAGE_KEY,
@@ -61,6 +61,24 @@ export function SiteHeader({
   const [fallbackTheme, setFallbackTheme] = React.useState<ThemeMode>(
     () => readStoredTheme(THEME_STORAGE_KEY) ?? 'dark',
   );
+
+  const [githubStars, setGithubStars] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    const controller = new AbortController();
+    fetch('https://api.github.com/repos/NeerajCodz/nothing-ui', {
+      signal: controller.signal,
+      headers: { Accept: 'application/vnd.github+json' },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
+        return response.json() as Promise<{ stargazers_count: number }>;
+      })
+      .then((repository) => setGithubStars(repository.stargazers_count))
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, []);
 
   const activeTheme = themeCtx ? themeCtx.theme : fallbackTheme;
 
@@ -159,6 +177,21 @@ export function SiteHeader({
 
         {/* Zone 3: Theme Switcher (Light / Dark / High Contrast) + Search (⌘K) */}
         <div className="flex shrink-0 items-center gap-2">
+          <a
+            href="https://github.com/NeerajCodz/nothing-ui"
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`GitHub repository${
+              githubStars === null ? '' : `, ${githubStars.toLocaleString()} stars`
+            }`}
+            title="View Nothing UI on GitHub"
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-[var(--nt-line-2)] bg-[var(--nt-surface)] px-2 font-mono text-xs text-[var(--nt-secondary)] transition-colors hover:border-[var(--nt-display)] hover:text-[var(--nt-display)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--nt-display)]"
+          >
+            <GithubLogo className="h-4 w-4" weight="regular" aria-hidden="true" />
+            <span>{githubStars === null ? '…' : githubStars.toLocaleString()}</span>
+            <span className="sr-only">stars</span>
+          </a>
+
           <div
             role="group"
             aria-label="Theme mode switcher"
