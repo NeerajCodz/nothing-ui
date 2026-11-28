@@ -25,7 +25,7 @@ import {
   filterCatalog,
 } from '@nothing-ui/registry';
 import { DOT_ICON_LIST } from '@nothing-ui/dot-icons';
-import { cn, useTheme } from '@nothing-ui/ui';
+import { cn } from '@nothing-ui/ui';
 import type { AppSection } from './site-header';
 import type { DocsHubTab } from './search-dialog';
 
@@ -50,7 +50,6 @@ export function DocsSidebar({
   onSelectComponent,
   onNavigateDocsTab,
 }: DocsSidebarProps) {
-  const { theme, setTheme } = useTheme();
   const [filter, setFilter] = React.useState('');
   const [platformFilter, setPlatformFilter] = React.useState<'all' | 'native'>('all');
   const [collapsed, setCollapsed] = React.useState<Record<string, boolean>>({});
@@ -565,32 +564,6 @@ export function DocsSidebar({
         )}
       </nav>
 
-      {/* Bottom Theme Switcher */}
-      <div className="border-t border-[var(--nt-line)] p-3">
-        <div className="flex items-center justify-between rounded-md border border-[var(--nt-line)] bg-[var(--nt-surface)] px-2.5 py-1.5">
-          <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--nt-muted)]">
-            Theme
-          </span>
-          <div className="inline-flex items-center gap-1" role="group" aria-label="Sidebar theme switch">
-            {(['dark', 'light', 'high-contrast'] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                aria-pressed={theme === mode}
-                onClick={() => setTheme(mode)}
-                className={cn(
-                  'rounded px-1.5 py-0.5 font-mono text-[10px] transition-colors cursor-pointer',
-                  theme === mode
-                    ? 'bg-[var(--nt-inverse-bg)] text-[var(--nt-inverse-fg)]'
-                    : 'text-[var(--nt-muted)] hover:text-[var(--nt-display)]',
-                )}
-              >
-                {mode === 'high-contrast' ? 'HC' : mode === 'dark' ? 'Dark' : 'Light'}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 

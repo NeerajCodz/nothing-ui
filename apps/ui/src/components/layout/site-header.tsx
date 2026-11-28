@@ -38,13 +38,12 @@ const NAV_ITEMS: NavItem[] = [
 
 const THEME_OPTIONS: ReadonlyArray<{
   id: ThemeMode;
-  shortLabel: string;
   ariaLabel: string;
   icon: typeof Sun;
 }> = [
-  { id: 'light', shortLabel: 'Light', ariaLabel: 'Light theme', icon: Sun },
-  { id: 'dark', shortLabel: 'Dark', ariaLabel: 'Dark theme', icon: Moon },
-  { id: 'high-contrast', shortLabel: 'HC', ariaLabel: 'High contrast theme', icon: CircleHalf },
+  { id: 'light', ariaLabel: 'Light theme', icon: Sun },
+  { id: 'dark', ariaLabel: 'Dark theme', icon: Moon },
+  { id: 'high-contrast', ariaLabel: 'High contrast theme', icon: CircleHalf },
 ];
 
 export function SiteHeader({
@@ -166,7 +165,7 @@ export function SiteHeader({
             data-testid="header-theme-toggle"
             className="inline-flex h-8 shrink-0 items-center gap-0.5 rounded-md border border-[var(--nt-line-2)] bg-[var(--nt-surface)] p-0.5"
           >
-            {THEME_OPTIONS.map(({ id, shortLabel, ariaLabel, icon: Icon }) => {
+            {THEME_OPTIONS.map(({ id, ariaLabel, icon: Icon }) => {
               const isSelected = activeTheme === id;
               return (
                 <button
@@ -178,14 +177,13 @@ export function SiteHeader({
                   title={ariaLabel}
                   data-testid={`header-theme-${id}`}
                   className={cn(
-                    'inline-flex h-full items-center justify-center gap-1 rounded-[4px] px-1.5 xl:px-2 font-mono text-[11px] whitespace-nowrap transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--nt-display)]',
+                    'inline-flex h-full w-7 items-center justify-center rounded-[4px] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--nt-display)]',
                     isSelected
                       ? 'bg-[var(--nt-inverse-bg)] text-[var(--nt-inverse-fg)] font-medium'
                       : 'text-[var(--nt-muted)] hover:text-[var(--nt-display)]',
                   )}
                 >
                   <Icon className="h-3.5 w-3.5 shrink-0" weight={isSelected ? 'fill' : 'regular'} aria-hidden="true" />
-                  <span className="hidden xl:inline">{shortLabel}</span>
                 </button>
               );
             })}

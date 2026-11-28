@@ -191,7 +191,7 @@ describe('NothingUiApp shell & layout integration', () => {
     expect(within(quickCopyCard).getByRole('button', { name: /Copied!/i })).toBeInTheDocument();
   });
 
-  it('persists SiteHeader theme toggle selection in localStorage, syncs with DocsSidebar, and restores on remount', async () => {
+  it('persists SiteHeader theme toggle selection in localStorage, and restores on remount', async () => {
     const user = userEvent.setup();
     const firstRender = renderApp();
 
@@ -202,14 +202,10 @@ describe('NothingUiApp shell & layout integration', () => {
     expect(document.documentElement.classList.contains('light')).toBe(true);
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
 
-    // DocsSidebar theme switcher stays in sync
-    const sidebarThemeGroup = within(screen.getByTestId('docs-sidebar')).getByRole('group', {
-      name: 'Sidebar theme switch',
-    });
-    expect(within(sidebarThemeGroup).getByRole('button', { name: 'Light' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    // Only the header owns the theme switcher
+    expect(
+      within(screen.getByTestId('docs-sidebar')).queryByRole('group', { name: 'Sidebar theme switch' }),
+    ).not.toBeInTheDocument();
 
     // Switch to High Contrast and simulate full page reload via unmount + remount
     await user.click(within(headerToggle).getByRole('button', { name: 'High contrast theme' }));

@@ -126,22 +126,11 @@ describe('DocsSidebar', () => {
     expect(firstGroupBtn).toHaveAttribute('aria-expanded', 'true');
   });
 
-  it('updates global ThemeProvider state when clicking Dark, Light, or HC buttons', async () => {
-    const user = userEvent.setup();
+  it('does not render its own theme switcher (theme lives in the site header only)', () => {
     renderSidebar();
 
     const sidebar = screen.getByTestId('docs-sidebar');
-    const themeGroup = within(sidebar).getByRole('group', { name: 'Sidebar theme switch' });
-
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-
-    await user.click(within(themeGroup).getByRole('button', { name: 'Light' }));
-    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-    expect(within(themeGroup).getByRole('button', { name: 'Light' })).toHaveAttribute('aria-pressed', 'true');
-
-    await user.click(within(themeGroup).getByRole('button', { name: 'HC' }));
-    expect(document.documentElement.getAttribute('data-theme')).toBe('high-contrast');
-    expect(document.documentElement.classList.contains('high-contrast')).toBe(true);
+    expect(within(sidebar).queryByRole('group', { name: 'Sidebar theme switch' })).not.toBeInTheDocument();
   });
 
   it('renders portaled mobile drawer when mobileOpen is true and closes on dismiss or selection', async () => {
