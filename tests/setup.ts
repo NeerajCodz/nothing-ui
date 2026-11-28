@@ -55,4 +55,8 @@ afterEach(() => {
   if (typeof window !== 'undefined' && window.localStorage) {
     window.localStorage.clear();
   }
+  // NothingUiApp syncs its route to the URL; start every test at "/".
+  if (typeof window !== 'undefined') {
+    window.history.replaceState(null, '', '/');
+  }
 });

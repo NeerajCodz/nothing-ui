@@ -16,12 +16,32 @@ import { DotIconExplorer } from './components/icons/icon-explorer';
 import { NativeDocsHub } from './components/native-docs-hub';
 import { hasPropsPlayground } from './components/playground/props-playground';
 import { getTocItemsForView } from './lib/toc';
+import {
+  DEFAULT_COMPONENT_SLUG,
+  DEFAULT_DOCS_TAB,
+  DEFAULT_ICON,
+  formatAppPath,
+  parseAppPath,
+  type AppRoute,
+} from './lib/routes';
+
+function readInitialRoute(): AppRoute {
+  if (typeof window === 'undefined') return { section: 'overview' };
+  return parseAppPath(window.location.pathname);
+}
 
 export function NothingUiApp() {
-  const [section, setSection] = React.useState<AppSection>('overview');
-  const [activeSlug, setActiveSlug] = React.useState<string>('button');
-  const [docsTab, setDocsTab] = React.useState<DocsHubTab>('cli');
-  const [selectedIcon, setSelectedIcon] = React.useState<DotIconCanonicalName>('wifi');
+  const [initialRoute] = React.useState(readInitialRoute);
+  const [section, setSection] = React.useState<AppSection>(initialRoute.section);
+  const [activeSlug, setActiveSlug] = React.useState<string>(
+    initialRoute.slug ?? DEFAULT_COMPONENT_SLUG,
+  );
+  const [docsTab, setDocsTab] = React.useState<DocsHubTab>(
+    initialRoute.docsTab ?? DEFAULT_DOCS_TAB,
+  );
+  const [selectedIcon, setSelectedIcon] = React.useState<DotIconCanonicalName>(
+    initialRoute.icon ?? DEFAULT_ICON,
+  );
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
 
@@ -34,6 +54,37 @@ export function NothingUiApp() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  // URL sync: state -> address bar. The first sync canonicalizes the entry
+  // URL (replace); later navigations push a new history entry.
+  const hasSyncedUrl = React.useRef(false);
+  const currentPath = formatAppPath({ section, activeSlug, docsTab, selectedIcon });
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname !== currentPath) {
+      const url = `${currentPath}${window.location.search}`;
+      if (hasSyncedUrl.current) {
+        window.history.pushState(null, '', url);
+      } else {
+        window.history.replaceState(window.history.state, '', url);
+      }
+    }
+    hasSyncedUrl.current = true;
+  }, [currentPath]);
+
+  // URL sync: back/forward -> state.
+  React.useEffect(() => {
+    const onPopState = () => {
+      const route = parseAppPath(window.location.pathname);
+      setSection(route.section);
+      if (route.slug) setActiveSlug(route.slug);
+      if (route.docsTab) setDocsTab(route.docsTab);
+      if (route.icon) setSelectedIcon(route.icon);
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
   const handleNavigate = (next: AppSection) => {
@@ -156,7 +207,9 @@ export function NothingUiApp() {
 
           {section === 'studio' && <GlyphStudio />}
 
-          {section === 'icons' && <DotIconExplorer initialIcon={selectedIcon} />}
+          {section === 'icons' && (
+            <DotIconExplorer initialIcon={selectedIcon} onSelectIcon={setSelectedIcon} />
+          )}
 
           {section === 'docs' && (
             <NativeDocsHub

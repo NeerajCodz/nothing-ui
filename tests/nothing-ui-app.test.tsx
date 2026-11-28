@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ThemeProvider } from '@nothing-ui/ui';
@@ -222,5 +222,56 @@ describe('NothingUiApp shell & layout integration', () => {
     );
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(document.documentElement.classList.contains('high-contrast')).toBe(true);
+  });
+
+  it('opens deep links and canonicalizes the entry URL', () => {
+    window.history.replaceState(null, '', '/widgets/calendar');
+    const first = renderApp();
+    const desktopNav = screen.getByRole('navigation', { name: 'Primary navigation' });
+    expect(within(desktopNav).getByRole('button', { name: 'Widgets' })).toHaveAttribute('aria-current', 'page');
+    expect(window.location.pathname).toBe('/widgets/calendar');
+    first.unmount();
+
+    // A slug opened under the wrong prefix is rewritten to its canonical URL
+    window.history.replaceState(null, '', '/components/calendar');
+    const second = renderApp();
+    expect(window.location.pathname).toBe('/widgets/calendar');
+    second.unmount();
+
+    window.history.replaceState(null, '', '/docs/changelog');
+    renderApp();
+    expect(window.location.pathname).toBe('/docs/changelog');
+  });
+
+  it('pushes a URL per navigation and restores views on back/forward', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    const desktopNav = screen.getByRole('navigation', { name: 'Primary navigation' });
+
+    await user.click(within(desktopNav).getByRole('button', { name: 'Widgets' }));
+    expect(window.location.pathname).toBe('/widgets');
+
+    await user.click(within(desktopNav).getByRole('button', { name: 'Glyph' }));
+    expect(window.location.pathname).toBe('/glyph');
+
+    await user.click(within(desktopNav).getByRole('button', { name: 'Icons' }));
+    expect(window.location.pathname).toBe('/icons');
+
+    await user.click(within(desktopNav).getByRole('button', { name: 'Showcase' }));
+    expect(window.location.pathname).toBe('/showcase');
+
+    await user.click(within(desktopNav).getByRole('button', { name: 'Docs' }));
+    expect(window.location.pathname).toBe('/docs');
+
+    await user.click(within(desktopNav).getByRole('button', { name: 'Components' }));
+    expect(window.location.pathname).toBe('/components/button');
+
+    // Simulate the browser back button landing on /widgets
+    act(() => {
+      window.history.replaceState(null, '', '/widgets');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    expect(within(desktopNav).getByRole('button', { name: 'Widgets' })).toHaveAttribute('aria-current', 'page');
+    expect(window.location.pathname).toBe('/widgets');
   });
 });

@@ -63,8 +63,11 @@ const PAGE_INCREMENT = 120;
 
 export function DotIconExplorer({
   initialIcon = 'wifi',
+  onSelectIcon,
 }: {
   initialIcon?: DotIconCanonicalName;
+  /** Called when the user picks an icon (used to keep the URL in sync). */
+  onSelectIcon?: (id: DotIconCanonicalName) => void;
 } = {}) {
   const [query, setQuery] = React.useState('');
   const [category, setCategory] = React.useState<string>('All');
@@ -221,6 +224,7 @@ export function DotIconExplorer({
   const handleSelectIcon = (id: DotIconCanonicalName) => {
     setSelectedId(id);
     setCustomGrid(null);
+    onSelectIcon?.(id);
   };
 
   const handleApplyAutoGrid = () => {
