@@ -147,12 +147,7 @@ export function NothingUiApp() {
           )}
 
           {section === 'widgets' && (
-            <WidgetsHub
-              onSelectWidget={handleSelectComponent}
-              onOpenComponents={() => handleSelectComponent('button')}
-              onOpenCharts={() => handleNavigate('charts')}
-              onOpenGlyph={() => handleNavigate('studio')}
-            />
+            <WidgetsHub onSelectWidget={handleSelectComponent} />
           )}
 
           {section === 'showcase' && (

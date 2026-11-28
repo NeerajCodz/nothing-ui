@@ -62,7 +62,7 @@ test('getTocItemsForView produces unique non-empty anchor lists for all app view
   const widgetsToc = getTocItemsForView({ section: 'widgets', docsTab: 'cli' });
   assert.deepEqual(
     widgetsToc.map((i) => i.id),
-    ['widgets-header', 'widgets-pillars', 'widgets-live', 'widgets-roadmap'],
+    ['widgets-header', 'widgets-live', 'widgets-roadmap'],
   );
 
   const showcaseToc = getTocItemsForView({ section: 'showcase', docsTab: 'cli' });

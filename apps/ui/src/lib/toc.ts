@@ -77,7 +77,6 @@ export function getTocItemsForView({
   if (section === 'widgets') {
     return [
       { id: 'widgets-header', label: 'Nothing UI Widgets', level: 2 },
-      { id: 'widgets-pillars', label: '3-Track Architecture', level: 2 },
       { id: 'widgets-live', label: 'Shipped Live Widgets', level: 2 },
       { id: 'widgets-roadmap', label: 'Roadmap Complete (100%)', level: 2 },
     ];

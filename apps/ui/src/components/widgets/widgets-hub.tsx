@@ -5,8 +5,6 @@ import {
   CheckCircle,
   Clock,
   Cpu,
-  GridFour,
-  SquaresFour,
   Terminal,
   VideoCamera,
   Wrench,
@@ -16,8 +14,6 @@ import {
   PLANNED_WIDGETS,
   SHIPPED_ROADMAP_WIDGET_COUNT,
   WIDGET_GROUPS,
-  getChartsCatalog,
-  getComponentCatalog,
   getWidgetCatalog,
   type PlannedWidgetEntry,
   type WidgetGroup,
@@ -57,22 +53,14 @@ function getGroupIcon(group?: WidgetGroup) {
 
 export function WidgetsHub({
   onSelectWidget,
-  onOpenComponents,
-  onOpenCharts,
-  onOpenGlyph,
 }: {
   onSelectWidget: (slug: string) => void;
-  onOpenComponents: () => void;
-  onOpenCharts: () => void;
-  onOpenGlyph: () => void;
 }) {
   const [liveGroup, setLiveGroup] = React.useState<LiveWidgetGroupFilter>('All');
   const [roadmapGroup, setRoadmapGroup] = React.useState<RoadmapGroupFilter>('All');
   const [priorityFilter, setPriorityFilter] = React.useState<PriorityFilter>('All');
 
   const liveWidgets = React.useMemo(() => getWidgetCatalog(), []);
-  const componentCount = React.useMemo(() => getComponentCatalog().length, []);
-  const chartCount = React.useMemo(() => getChartsCatalog().length, []);
   const clockCount = React.useMemo(
     () => liveWidgets.filter((w) => CLOCK_WIDGET_SLUGS.has(w.slug)).length,
     [liveWidgets],
@@ -136,89 +124,6 @@ export function WidgetsHub({
           </Button>
         </div>
       </header>
-
-      {/* 3-Track Architecture Distinction */}
-      <section
-        id="widgets-pillars"
-        className="scroll-mt-20 grid grid-cols-1 gap-4 md:grid-cols-3"
-        aria-label="Nothing UI 3-track taxonomy"
-      >
-        {/* Pillar 1: Components */}
-        <div className="flex flex-col justify-between rounded-2xl border border-[var(--nt-line)] bg-[var(--nt-surface)] p-5 space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2 font-mono text-[10px] text-[var(--nt-muted)] whitespace-nowrap">
-              <span className="uppercase tracking-[0.1em]">Track 01 · Primitives</span>
-              <span className="tabular-nums text-[var(--nt-display)]">{componentCount} live</span>
-            </div>
-            <h2 className="font-display text-xl text-[var(--nt-display)]">Components</h2>
-            <p className="text-xs leading-relaxed text-[var(--nt-secondary)]">
-              Reusable atomic UI building blocks across Inputs &amp; Actions, Navigation &amp;
-              Layout, Overlays &amp; Feedback, dedicated{' '}
-              <span className="text-[var(--nt-display)]">Charts ({chartCount})</span>, and Data
-              &amp; Hardware.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 border-t border-[var(--nt-line)] pt-3">
-            <Button variant="outline" size="sm" onClick={onOpenComponents}>
-              Browse Components
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onOpenCharts}>
-              Charts ({chartCount}) →
-            </Button>
-          </div>
-        </div>
-
-        {/* Pillar 2: Widgets (Active) */}
-        <div className="flex flex-col justify-between rounded-2xl border border-[var(--nt-display)] bg-[var(--nt-surface)] p-5 space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2 font-mono text-[10px] text-[var(--nt-muted)] whitespace-nowrap">
-              <span className="uppercase tracking-[0.1em] text-[var(--nt-accent)]">
-                Track 02 · Mini-Apps
-              </span>
-              <span className="tabular-nums text-[var(--nt-display)]">
-                {PLANNED_WIDGETS.length === 0
-                  ? `${liveWidgets.length} live · 100%`
-                  : `${liveWidgets.length} live · +${PLANNED_WIDGETS.length}`}
-              </span>
-            </div>
-            <h2 className="font-display text-xl text-[var(--nt-display)]">Widgets</h2>
-            <p className="text-xs leading-relaxed text-[var(--nt-secondary)]">
-              Complete, drop-in functional modules that compose multiple primitives with domain
-              state — {clockCount} Clock varieties, Hardware OS telemetry, Audio/Video decks, and
-              Productivity tools.
-            </p>
-          </div>
-          <div className="flex items-center justify-between border-t border-[var(--nt-line)] pt-3 font-mono text-[11px] text-[var(--nt-display)]">
-            <span className="flex items-center gap-1.5">
-              <SquaresFour className="h-3.5 w-3.5 text-[var(--nt-accent)]" />
-              Active Workspace
-            </span>
-            <span className="tabular-nums text-[var(--nt-muted)]">4 groups</span>
-          </div>
-        </div>
-
-        {/* Pillar 3: Glyph System */}
-        <div className="flex flex-col justify-between rounded-2xl border border-[var(--nt-line)] bg-[var(--nt-surface)] p-5 space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2 font-mono text-[10px] text-[var(--nt-muted)] whitespace-nowrap">
-              <span className="uppercase tracking-[0.1em]">Track 03 · LED Matrix</span>
-              <span className="tabular-nums text-[var(--nt-display)]">13×13 · 25×25</span>
-            </div>
-            <h2 className="font-display text-xl text-[var(--nt-display)]">Glyph System</h2>
-            <p className="text-xs leading-relaxed text-[var(--nt-secondary)]">
-              Standalone addressable LED matrix architecture — neither a standard Component nor a
-              Widget. Ships with Glyph Studio, frame timeline animator, and SVG/JSON hardware
-              export.
-            </p>
-          </div>
-          <div className="flex items-center justify-between border-t border-[var(--nt-line)] pt-3">
-            <Button variant="outline" size="sm" onClick={onOpenGlyph}>
-              <GridFour className="h-3.5 w-3.5" />
-              Open Glyph Studio
-            </Button>
-          </div>
-        </div>
-      </section>
 
       {/* Featured Clock Varieties Live Preview Strip */}
       <section

@@ -5,22 +5,16 @@ import { CLOCK_WIDGET_SLUGS, PLANNED_WIDGETS, getWidgetCatalog } from '@nothing-
 import { WidgetsHub } from '@apps/ui/components/widgets/widgets-hub';
 
 describe('WidgetsHub', () => {
-  it('renders the 3-track taxonomy pillars, all 35 live widgets, clock preview suite, and 100% roadmap shipped banner', () => {
+  it('renders all 35 live widgets, clock preview suite, and 100% roadmap shipped banner', () => {
     render(
       <WidgetsHub
         onSelectWidget={vi.fn()}
-        onOpenComponents={vi.fn()}
-        onOpenCharts={vi.fn()}
-        onOpenGlyph={vi.fn()}
       />,
     );
 
     expect(screen.getByRole('heading', { level: 1, name: 'Nothing UI Widgets' })).toBeInTheDocument();
 
-    const pillars = screen.getByLabelText('Nothing UI 3-track taxonomy');
-    expect(within(pillars).getByRole('heading', { name: 'Components' })).toBeInTheDocument();
-    expect(within(pillars).getByRole('heading', { name: 'Widgets' })).toBeInTheDocument();
-    expect(within(pillars).getByRole('heading', { name: 'Glyph System' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('Nothing UI 3-track taxonomy')).not.toBeInTheDocument();
 
     const liveGrid = screen.getByTestId('live-widgets-grid');
     expect(liveGrid.children.length).toBe(getWidgetCatalog().length);
@@ -48,9 +42,6 @@ describe('WidgetsHub', () => {
     render(
       <WidgetsHub
         onSelectWidget={onSelectWidget}
-        onOpenComponents={vi.fn()}
-        onOpenCharts={vi.fn()}
-        onOpenGlyph={vi.fn()}
       />,
     );
 
@@ -77,30 +68,11 @@ describe('WidgetsHub', () => {
     expect(onSelectWidget).toHaveBeenCalledWith('pomodoro-focus-card');
   });
 
-  it('invokes pillar navigation callbacks and quick launch buttons', async () => {
+  it('opens the clock studio from the header quick launch', async () => {
     const user = userEvent.setup();
     const onSelectWidget = vi.fn();
-    const onOpenComponents = vi.fn();
-    const onOpenCharts = vi.fn();
-    const onOpenGlyph = vi.fn();
 
-    render(
-      <WidgetsHub
-        onSelectWidget={onSelectWidget}
-        onOpenComponents={onOpenComponents}
-        onOpenCharts={onOpenCharts}
-        onOpenGlyph={onOpenGlyph}
-      />,
-    );
-
-    await user.click(screen.getByRole('button', { name: 'Browse Components' }));
-    expect(onOpenComponents).toHaveBeenCalledTimes(1);
-
-    await user.click(screen.getByRole('button', { name: /Charts \(9\)/i }));
-    expect(onOpenCharts).toHaveBeenCalledTimes(1);
-
-    await user.click(screen.getByRole('button', { name: /Open Glyph Studio/i }));
-    expect(onOpenGlyph).toHaveBeenCalledTimes(1);
+    render(<WidgetsHub onSelectWidget={onSelectWidget} />);
 
     await user.click(screen.getByRole('button', { name: /Open Clock Studio/i }));
     expect(onSelectWidget).toHaveBeenCalledWith('clock-collection');
